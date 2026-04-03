@@ -1,6 +1,20 @@
 """CLI commands for lead-gen."""
 
+import asyncio
+import json
+
 import click
+
+from src.extraction.adapters import Crawl4aiAdapter
+from src.extraction.extractors import (
+    EmailExtractor,
+    PhoneExtractor,
+    SocialExtractor,
+    WebsiteExtractor,
+)
+from src.core.rate_limiter import RateLimiter
+from src.core.robots import RobotsTxtParser
+from src.config.settings import Settings
 
 
 @click.command(name="search")
@@ -17,12 +31,68 @@ def search(query, location, limit):
 
 @click.command(name="scrape")
 @click.option("--url", required=True, help="URL to scrape")
-@click.option("--output", help="Output file path")
-def scrape(url, output):
+@click.option(
+    "--format",
+    type=click.Choice(["json", "text"]),
+    default="json",
+    help="Output format",
+)
+def scrape(url, format):
     """Scrape contact information from a URL."""
-    click.echo(f"Scraping: {url}")
-    if output:
-        click.echo(f"Output: {output}")
+    asyncio.run(_scrape(url, format))
+
+
+async def _scrape(url: str, output_format: str):
+    """Execute scrape asynchronously."""
+    settings = Settings()
+    rate_limiter = RateLimiter(settings)
+    robots_parser = RobotsTxtParser(settings)
+
+    from crawl4ai import AsyncWebCrawler
+
+    crawler = AsyncWebCrawler()
+    await crawler.start()
+
+    adapter = Crawl4aiAdapter(
+        crawler=crawler,
+        rate_limiter=rate_limiter,
+        robots_parser=robots_parser,
+    )
+
+    try:
+        html = await adapter.fetch_if_allowed(url)
+
+        email_extractor = EmailExtractor()
+        phone_extractor = PhoneExtractor()
+        social_extractor = SocialExtractor()
+        website_extractor = WebsiteExtractor()
+
+        emails = email_extractor.extract_from_html(html)
+        phones = phone_extractor.extract_from_html(html)
+        social = social_extractor.extract_from_html(html)
+        websites = website_extractor.extract_from_html(html, base_url=url)
+
+        result = {
+            "url": url,
+            "emails": emails,
+            "phones": phones,
+            "social": social,
+            "websites": websites,
+        }
+
+        if output_format == "json":
+            click.echo(json.dumps(result, indent=2))
+        else:
+            if emails:
+                click.echo("Emails: " + ", ".join(emails))
+            if phones:
+                click.echo("Phones: " + ", ".join(phones))
+            if social:
+                click.echo("Social: " + ", ".join(social))
+            if websites:
+                click.echo("Websites: " + ", ".join(websites))
+    finally:
+        await crawler.close()
 
 
 @click.command(name="init")
