@@ -75,6 +75,10 @@
 - Social link extractor (LinkedIn, Twitter/X)
 - Source adapter interface (Strategy pattern)
 
+**Plans:**
+- [ ] 02-01-PLAN.md — Extraction infrastructure (scraper + extractors)
+- [ ] 02-02-PLAN.md — Source adapter interface and CLI integration
+
 ---
 
 ## Phase 3: Persistence & Export
