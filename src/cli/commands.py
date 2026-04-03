@@ -9,6 +9,15 @@ from typing import Optional
 import click
 from tqdm import tqdm
 
+from src.cli.errors import (
+    APIKeyError,
+    ConfigurationError,
+    LeadGenError,
+    NetworkError,
+    RateLimitError,
+    ScrapingError,
+)
+
 from src.extraction.adapters import Crawl4aiAdapter
 from src.extraction.extractors import (
     EmailExtractor,
@@ -25,6 +34,7 @@ from src.export.csv_generator import export_csv
 from src.export.columns import AVAILABLE_COLUMNS
 from src.storage.lead_ingestion import LeadIngestionService
 from src.storage.checkpoint import CheckpointService
+from src.core.signals import setup_signal_handlers, set_cleanup_callback
 
 
 @click.command(name="search")
@@ -55,6 +65,7 @@ def search(query, location, limit, ingest, dry_run):
             "SERPER_API_KEY not set. Get one at https://serper.dev/ and set it in your .env file."
         )
 
+    # Set up signal handlers for graceful shutdown
     asyncio.run(_search(query, location, limit, ingest, settings, dry_run))
 
 
@@ -75,6 +86,21 @@ async def _search(
         click.echo("=====================")
         return
 
+    # Set up signal handlers with checkpoint save
+    checkpoint_service = CheckpointService()
+
+    def save_checkpoint():
+        """Save checkpoint on interrupt."""
+        try:
+            checkpoint_service.save_progress(
+                "search", job_id, completed_results, [], "interrupted"
+            )
+        except Exception:
+            pass  # Best effort
+
+    setup_signal_handlers(save_checkpoint)
+    set_cleanup_callback(save_checkpoint)
+
     adapter = SerperAdapter(settings.serper_api_key)
 
     if location:
@@ -89,7 +115,6 @@ async def _search(
     job_id = f"{query_hash}_{datetime.utcnow().strftime('%Y%m%d')}"
 
     # Check for existing checkpoint to resume
-    checkpoint_service = CheckpointService()
     completed_results = []
     start_index = 0
 
@@ -131,12 +156,25 @@ async def _search(
                 checkpoint_service.save_progress(
                     "search", job_id, completed_results, [], "running"
                 )
+    except LeadGenError as e:
+        # Save checkpoint on failure
+        checkpoint_service.save_progress(
+            "search", job_id, completed_results, [{"error": str(e)}], "failed"
+        )
+        click.echo(click.style(f"Error: {e.user_message}", fg="red"), err=True)
+        raise click.ClickException(e.user_message)
     except Exception as e:
         # Save checkpoint on failure
         checkpoint_service.save_progress(
             "search", job_id, completed_results, [{"error": str(e)}], "failed"
         )
         raise click.ClickException(f"Search failed: {e}")
+    finally:
+        # Ensure progress bar is closed
+        try:
+            tqdm._instances.clear()  # type: ignore
+        except Exception:
+            pass
 
     if not results:
         click.echo("No results found.")
@@ -220,6 +258,19 @@ async def _scrape(url: str, output_format: str, dry_run: bool = False):
     completed_items = []
     failed_items = []
 
+    # Set up signal handlers with checkpoint save
+    def save_checkpoint():
+        """Save checkpoint on interrupt."""
+        try:
+            checkpoint_service.save_progress(
+                "scrape", job_id, completed_items, failed_items, "interrupted"
+            )
+        except Exception:
+            pass  # Best effort
+
+    setup_signal_handlers(save_checkpoint)
+    set_cleanup_callback(save_checkpoint)
+
     # Check for existing checkpoint to resume
     if checkpoint_service.is_resumable("scrape", job_id):
         checkpoint = checkpoint_service.load_checkpoint("scrape", job_id)
@@ -277,6 +328,14 @@ async def _scrape(url: str, output_format: str, dry_run: bool = False):
                 click.echo("Websites: " + ", ".join(websites))
 
         click.echo(f"Stored {added} new leads, {duplicates} duplicates skipped")
+    except LeadGenError as e:
+        # Track failed item and save checkpoint
+        failed_items.append({"url": url, "error": str(e)})
+        checkpoint_service.save_progress(
+            "scrape", job_id, completed_items, failed_items, "failed"
+        )
+        click.echo(click.style(f"Error: {e.user_message}", fg="red"), err=True)
+        raise click.ClickException(e.user_message)
     except Exception as e:
         # Track failed item and save checkpoint
         failed_items.append({"url": url, "error": str(e)})
@@ -288,6 +347,13 @@ async def _scrape(url: str, output_format: str, dry_run: bool = False):
         # Clear checkpoint on successful completion (moved here for proper cleanup)
         if not failed_items:
             checkpoint_service.clear_checkpoint("scrape", job_id)
+        # Ensure progress bars are closed
+        try:
+            from tqdm import tqdm
+
+            tqdm._instances.clear()  # type: ignore
+        except Exception:
+            pass
         await crawler.close()
 
 
