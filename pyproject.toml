@@ -1,23 +1,25 @@
-[project]
+[tool.poetry]
 name = "lead-gen"
 version = "0.1.0"
 description = "Lead Generation CLI - Find and extract business contact information"
+authors = ["Saswata Biswas <saswata.biswas20@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.10"
-dependencies = [
-    "click>=8.0",
-    "pydantic>=2.0",
-    "pydantic-settings>=2.0",
-    "python-dotenv>=1.0",
-    "PyYAML>=6.0",
-]
+packages = [{include = "src"}]
 
-[project.scripts]
+[tool.poetry.dependencies]
+python = "^3.10"
+click = "^8.0"
+pydantic = "^2.0"
+pydantic-settings = "^2.0"
+python-dotenv = "^1.0"
+pyyaml = "^6.0"
+protego = "^0.4"
+httpx = "^0.27"
+email-validator = "^2.0"
+
+[tool.poetry.scripts]
 lead-gen = "src.main:cli"
 
 [build-system]
-requires = ["setuptools>=68.0"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools.packages.find]
-where = ["."]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"

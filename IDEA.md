@@ -1,0 +1,1 @@
+# Create a lead generation tool that uses different sources like google search and other tools that are free to scrape leads for a web development agency. The main goal of the app is to provide the user with a csv file containg the leads data like email, phone number, social media links, website links(if any) so that the user can cold-call or cold-email the leads for their work.
