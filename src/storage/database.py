@@ -30,6 +30,6 @@ def get_session() -> Session:
         session.close()
 
 
-def init_db(metadata):
+def init_db():
     """Create all tables defined in the metadata."""
-    metadata.create_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
