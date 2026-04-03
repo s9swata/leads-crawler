@@ -49,7 +49,8 @@ class Lead(BaseModel):
             r"(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|"  # domain
             r"localhost|"  # localhost
             r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})"  # IP
-            r"(?::\d+)?$",
+            r"(?::\d+)?"  # port
+            r"(?:/[^\s]*)?$",  # path
             re.IGNORECASE,
         )
         if not url_pattern.match(v):
