@@ -36,19 +36,44 @@ from src.storage.checkpoint import CheckpointService
     default=False,
     help="Ingest results to database for later scraping",
 )
-def search(query, location, limit, ingest):
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Preview without executing",
+)
+def search(query, location, limit, ingest, dry_run):
     """Search for business leads based on query and location."""
+    # Dry-run mode: skip API key check
+    if dry_run:
+        asyncio.run(_search(query, location, limit, ingest, None, dry_run))
+        return
+
     settings = Settings()
     if not settings.serper_api_key:
         raise click.ClickException(
             "SERPER_API_KEY not set. Get one at https://serper.dev/ and set it in your .env file."
         )
 
-    asyncio.run(_search(query, location, limit, ingest, settings))
+    asyncio.run(_search(query, location, limit, ingest, settings, dry_run))
 
 
-async def _search(query: str, location: str, limit: int, ingest: bool, settings):
+async def _search(
+    query: str, location: str, limit: int, ingest: bool, settings, dry_run: bool = False
+):
+    """Execute search asynchronously."""
     from src.search.adapters import SerperAdapter
+
+    # Dry-run mode: show what would happen without executing
+    if dry_run:
+        full_query = f"{query} {location}" if location else query
+        click.echo("=== DRY RUN MODE ===")
+        click.echo(f"Would search for: {full_query}")
+        click.echo(f"Location: {location or 'None'}")
+        click.echo(f"Limit: {limit} results")
+        click.echo(f"Ingest to database: {ingest}")
+        click.echo("=====================")
+        return
 
     adapter = SerperAdapter(settings.serper_api_key)
 
@@ -152,13 +177,28 @@ async def _search(query: str, location: str, limit: int, ingest: bool, settings)
     default="json",
     help="Output format",
 )
-def scrape(url, format):
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    default=False,
+    help="Preview without executing",
+)
+def scrape(url, format, dry_run):
     """Scrape contact information from a URL."""
-    asyncio.run(_scrape(url, format))
+    asyncio.run(_scrape(url, format, dry_run))
 
 
-async def _scrape(url: str, output_format: str):
+async def _scrape(url: str, output_format: str, dry_run: bool = False):
     """Execute scrape asynchronously."""
+    # Dry-run mode: show what would happen without executing
+    if dry_run:
+        click.echo("=== DRY RUN MODE ===")
+        click.echo(f"Would scrape: {url}")
+        click.echo("With extractors: email, phone, social, website")
+        click.echo("Would store results to database")
+        click.echo("=====================")
+        return
+
     settings = Settings()
     rate_limiter = RateLimiter(settings)
     robots_parser = RobotsTxtParser(settings)
