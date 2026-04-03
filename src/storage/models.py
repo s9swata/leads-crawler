@@ -1,8 +1,10 @@
-"""SQLAlchemy Lead model."""
+"""SQLAlchemy models for lead-gen database."""
 
+import json
 from datetime import datetime
+from enum import Enum as PyEnum
 
-from sqlalchemy import DateTime, Index, String
+from sqlalchemy import DateTime, Index, JSON, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -10,6 +12,15 @@ class Base(DeclarativeBase):
     """Base class for SQLAlchemy models."""
 
     pass
+
+
+class CheckpointStatus(PyEnum):
+    """Status enum for checkpoint jobs."""
+
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class Lead(Base):
@@ -31,3 +42,26 @@ class Lead(Base):
     scraped_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     __table_args__ = (Index("idx_leads_source_discovered", "source", "discovered_at"),)
+
+
+class Checkpoint(Base):
+    """Checkpoint model for resuming interrupted jobs."""
+
+    __tablename__ = "checkpoints"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    job_type: Mapped[str] = mapped_column(String(50), nullable=False)
+    job_id: Mapped[str] = mapped_column(String(255), nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, default=CheckpointStatus.PENDING.value
+    )
+    completed_items: Mapped[str] = mapped_column(JSON, nullable=False, default=list)
+    failed_items: Mapped[str] = mapped_column(JSON, nullable=False, default=list)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow
+    )
+
+    __table_args__ = (Index("idx_checkpoint_job", "job_type", "job_id", unique=True),)
