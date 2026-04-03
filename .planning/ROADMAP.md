@@ -114,6 +114,10 @@
 - CSV generator with column mapping
 - View command with pagination
 
+**Plans:**
+- [x] 03-01-PLAN.md — Lead storage infrastructure with SQLite, deduplication, indexes
+- [x] 03-02-PLAN.md — Filter/sort engine, CSV export, leads and export CLI commands
+
 ---
 
 ## Phase 4: Search & Discovery
