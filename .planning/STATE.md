@@ -3,7 +3,7 @@
 **Updated:** 2026-04-03
 **Status:** Phase complete — ready for verification
 **Current Phase:** 5
-**Current Plan:** 1
+**Current Plan:** 2
 **Total Plans in Phase:** 2
 
 ---
@@ -16,7 +16,7 @@
 | 2 | Core Extraction | COMPLETE | 100% | — |
 | 3 | Persistence & Export | COMPLETE | 100% | — |
 | 4 | Search & Discovery | COMPLETE | 100% | — |
-| 5 | Resilience & Polish | IN_PROGRESS | 50% | — |
+| 5 | Resilience & Polish | COMPLETE | 100% | — |
 
 ---
 
@@ -43,6 +43,7 @@
 | EXPT-02 | Phase 3 | COMPLETED |
 | EXPT-03 | Phase 3 | COMPLETED |
 | DEDUP-01 | Phase 3-03 | COMPLETED |
+| RESIL-01 | Phase 5-03 | COMPLETED |
 | CHKPT-01 | Phase 5-01 | COMPLETED |
 | CHKPT-02 | Phase 5-01 | COMPLETED |
 
@@ -68,6 +69,11 @@
 - Checkpoint SQLAlchemy model with unique (job_type, job_id) index
 - CheckpointService for save/load/clear checkpoint operations
 - Query hash + date as job_id for search, URL as job_id for scrape
+- Generic @retry decorator with exponential backoff supporting sync/async functions
+- typing-extensions ParamSpec for type-safe decorators
+- Custom exceptions inherit from LeadGenError with user_message/technical_details
+- Signal handlers use cleanup_callback pattern for checkpoint save on interrupt
+- Used click.style() for colored error output (red for errors, yellow for warnings)
 
 ---
 
@@ -88,6 +94,8 @@
 - Phase 4-02 complete: Gap closure - progress indicator, pagination, rate limit handling
 - Phase 5-01 complete: Checkpoint model + CheckpointService for resume capability
 - Checkpoint integration in search and scrape commands (Phase 5-01)
+- Phase 5-02 complete: @retry decorator with exponential backoff, --dry-run for search/scrape commands
+- Phase 5-03 complete: Custom exceptions with user-friendly messages, signal handlers for graceful shutdown
 
 ---
 
