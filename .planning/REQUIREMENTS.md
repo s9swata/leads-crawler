@@ -84,30 +84,30 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DISC-01 | TBD | Pending |
-| DISC-02 | TBD | Pending |
-| DISC-03 | TBD | Pending |
-| DISC-04 | TBD | Pending |
-| COLL-01 | TBD | Pending |
-| COLL-02 | TBD | Pending |
-| COLL-03 | TBD | Pending |
-| COLL-04 | TBD | Pending |
-| LEAD-01 | TBD | Pending |
-| LEAD-02 | TBD | Pending |
-| LEAD-03 | TBD | Pending |
-| LEAD-04 | TBD | Pending |
-| EXPT-01 | TBD | Pending |
-| EXPT-02 | TBD | Pending |
-| EXPT-03 | TBD | Pending |
-| CLI-01 | TBD | Pending |
-| CLI-02 | TBD | Pending |
-| CLI-03 | TBD | Pending |
+| CLI-01 | Phase 1: Foundation | NOT_STARTED |
+| CLI-02 | Phase 1: Foundation | NOT_STARTED |
+| CLI-03 | Phase 1: Foundation | NOT_STARTED |
+| DISC-01 | Phase 4: Search & Discovery | NOT_STARTED |
+| DISC-02 | Phase 4: Search & Discovery | NOT_STARTED |
+| DISC-03 | Phase 4: Search & Discovery | NOT_STARTED |
+| DISC-04 | Phase 1: Foundation | NOT_STARTED |
+| COLL-01 | Phase 2: Core Extraction | NOT_STARTED |
+| COLL-02 | Phase 2: Core Extraction | NOT_STARTED |
+| COLL-03 | Phase 2: Core Extraction | NOT_STARTED |
+| COLL-04 | Phase 2: Core Extraction | NOT_STARTED |
+| LEAD-01 | Phase 3: Persistence & Export | NOT_STARTED |
+| LEAD-02 | Phase 3: Persistence & Export | NOT_STARTED |
+| LEAD-03 | Phase 3: Persistence & Export | NOT_STARTED |
+| LEAD-04 | Phase 3: Persistence & Export | NOT_STARTED |
+| EXPT-01 | Phase 3: Persistence & Export | NOT_STARTED |
+| EXPT-02 | Phase 3: Persistence & Export | NOT_STARTED |
+| EXPT-03 | Phase 3: Persistence & Export | NOT_STARTED |
 
 **Coverage:**
 - v1 requirements: 17 total
-- Mapped to phases: 0
-- Unmapped: 17 ⚠️
+- Mapped to phases: 17
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-03*
-*Last updated: 2026-04-03 after initial definition*
+*Last updated: 2026-04-03 after roadmap creation*
