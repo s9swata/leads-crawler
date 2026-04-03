@@ -33,7 +33,7 @@ from src.storage.query_builder import build_leads_query
 from src.export.csv_generator import export_csv
 from src.export.columns import AVAILABLE_COLUMNS
 from src.storage.lead_ingestion import LeadIngestionService
-from src.storage.checkpoint import CheckpointService
+from src.storage.checkpoint import CheckpointService, CheckpointStatus
 from src.core.signals import setup_signal_handlers, set_cleanup_callback
 
 
@@ -93,7 +93,11 @@ async def _search(
         """Save checkpoint on interrupt."""
         try:
             checkpoint_service.save_progress(
-                "search", job_id, completed_results, [], "interrupted"
+                "search",
+                job_id,
+                completed_results,
+                [],
+                CheckpointStatus.INTERRUPTED.value,
             )
         except Exception:
             pass  # Best effort
@@ -263,7 +267,11 @@ async def _scrape(url: str, output_format: str, dry_run: bool = False):
         """Save checkpoint on interrupt."""
         try:
             checkpoint_service.save_progress(
-                "scrape", job_id, completed_items, failed_items, "interrupted"
+                "scrape",
+                job_id,
+                completed_items,
+                failed_items,
+                CheckpointStatus.INTERRUPTED.value,
             )
         except Exception:
             pass  # Best effort

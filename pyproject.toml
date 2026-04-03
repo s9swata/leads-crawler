@@ -25,6 +25,9 @@ sqlalchemy = "^2.0"
 [tool.poetry.scripts]
 lead-gen = "src.main:cli"
 
+[tool.poetry.group.dev.dependencies]
+typing-extensions = "^4.15.0"
+
 [build-system]
 requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
