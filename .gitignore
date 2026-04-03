@@ -1,0 +1,6 @@
+*.csv
+*.env
+.ruff_cache
+.venv
+.planning
+.env
