@@ -20,6 +20,7 @@ crawl4ai = "^0.5"
 beautifulsoup4 = "^4.12"
 lxml = "^5.0"
 phonenumbers = "^8.13"
+sqlalchemy = "^2.0"
 
 [tool.poetry.scripts]
 lead-gen = "src.main:cli"
