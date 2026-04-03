@@ -2,6 +2,7 @@
 
 from crawl4ai import AsyncWebCrawler
 
+from src.core.retry import retry
 from src.extraction.adapters.base import SourceAdapter
 
 
@@ -18,8 +19,14 @@ class Crawl4aiAdapter(SourceAdapter):
         super().__init__(**kwargs)
         self.crawler = crawler
 
+    @retry(
+        max_retries=3,
+        initial_backoff=2.0,
+        backoff_factor=2.0,
+        retry_on=(Exception,),
+    )
     async def fetch(self, url: str) -> str:
-        """Fetch HTML content from URL using Crawl4ai.
+        """Fetch HTML content from URL using Crawl4ai with retry on failure.
 
         Args:
             url: URL to fetch
