@@ -15,6 +15,10 @@ from src.extraction.extractors import (
 from src.core.rate_limiter import RateLimiter
 from src.core.robots import RobotsTxtParser
 from src.config.settings import Settings
+from src.storage.database import session_scope
+from src.storage.query_builder import build_leads_query
+from src.export.csv_generator import export_csv
+from src.export.columns import AVAILABLE_COLUMNS
 
 
 @click.command(name="search")
@@ -102,13 +106,107 @@ def init():
     click.echo("Creating default config file...")
 
 
-@click.command(name="export")
+@click.command(name="leads")
+@click.option("--page", "-p", default=1, help="Page number (default: 1)")
+@click.option("--per-page", "-n", default=20, help="Items per page (default: 20)")
 @click.option(
-    "--format", type=click.Choice(["csv", "json"]), default="csv", help="Export format"
+    "--filter-email/--no-email", default=None, help="Filter by email presence"
 )
+@click.option(
+    "--filter-phone/--no-phone", default=None, help="Filter by phone presence"
+)
+@click.option(
+    "--filter-website/--no-website", default=None, help="Filter by website presence"
+)
+@click.option("--source", help="Filter by source (search, scrape, manual)")
+@click.option(
+    "--sort",
+    type=click.Choice(["discovered_at", "source", "company_name", "scraped_at"]),
+    default="discovered_at",
+    help="Sort field",
+)
+@click.option(
+    "--order", type=click.Choice(["asc", "desc"]), default="desc", help="Sort order"
+)
+def leads(
+    page, per_page, filter_email, filter_phone, filter_website, source, sort, order
+):
+    """View leads with filtering, sorting, and pagination."""
+    from src.storage.lead_repo import LeadRepository
+
+    with session_scope() as session:
+        repo = LeadRepository(session)
+
+        offset = (page - 1) * per_page
+        leads_list = build_leads_query(
+            session,
+            has_email=filter_email,
+            has_phone=filter_phone,
+            has_website=filter_website,
+            source=source,
+            sort_by=sort,
+            sort_order=order,
+            limit=per_page,
+            offset=offset,
+        )
+
+        if not leads_list:
+            click.echo("No leads found.")
+            return
+
+        for lead in leads_list:
+            click.echo(f"\n--- Lead: {lead.company_name} ---")
+            click.echo(f"  Source: {lead.source}")
+            if lead.email:
+                click.echo(f"  Email: {lead.email}")
+            if lead.website:
+                click.echo(f"  Website: {lead.website}")
+            if lead.phone:
+                click.echo(f"  Phone: {lead.phone}")
+            if lead.linkedin:
+                click.echo(f"  LinkedIn: {lead.linkedin}")
+            click.echo(f"  Discovered: {lead.discovered_at}")
+
+        total = repo.count()
+        total_pages = (total + per_page - 1) // per_page
+        click.echo(f"\n--- Page {page}/{total_pages} | Total: {total} leads ---")
+
+
+@click.command(name="export")
+@click.option("--output", "-o", required=True, help="Output CSV file path")
 @click.option("--columns", help="Comma-separated list of columns to export")
-def export_cmd(format, columns):
-    """Export leads to CSV or JSON format."""
-    click.echo(f"Exporting in format: {format}")
+@click.option(
+    "--filter-email/--no-email", default=None, help="Filter by email presence"
+)
+@click.option(
+    "--filter-phone/--no-phone", default=None, help="Filter by phone presence"
+)
+@click.option(
+    "--filter-website/--no-website", default=None, help="Filter by website presence"
+)
+@click.option("--source", help="Filter by source (search, scrape, manual)")
+def export_cmd(output, columns, filter_email, filter_phone, filter_website, source):
+    """Export leads to CSV format."""
+    column_list = None
     if columns:
-        click.echo(f"Columns: {columns}")
+        column_list = [col.strip() for col in columns.split(",")]
+
+    with session_scope() as session:
+        leads_list = build_leads_query(
+            session,
+            has_email=filter_email,
+            has_phone=filter_phone,
+            has_website=filter_website,
+            source=source,
+            sort_by="discovered_at",
+            sort_order="desc",
+            limit=10000,
+            offset=0,
+        )
+
+        if not leads_list:
+            click.echo("No leads to export.")
+            return
+
+        count = export_csv(leads_list, output, column_list)
+        click.echo(f"Exported {count} leads to {output}")

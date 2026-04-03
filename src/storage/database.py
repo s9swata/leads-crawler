@@ -16,8 +16,13 @@ engine = create_engine(DATABASE_URL, echo=False, future=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
-@contextmanager
 def get_session() -> Session:
+    """Get a SQLAlchemy session."""
+    return SessionLocal()
+
+
+@contextmanager
+def session_scope() -> Session:
     """Get a SQLAlchemy session as a context manager."""
     session = SessionLocal()
     try:
