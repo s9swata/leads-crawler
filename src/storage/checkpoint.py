@@ -127,8 +127,9 @@ class CheckpointService:
             if checkpoint is None:
                 return False
 
-            # Resumable if pending or running (not completed or failed)
+            # Resumable if pending, running, or interrupted (not completed or failed)
             return checkpoint.status in (
                 CheckpointStatus.PENDING.value,
                 CheckpointStatus.RUNNING.value,
+                CheckpointStatus.INTERRUPTED.value,
             )

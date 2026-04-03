@@ -21,6 +21,7 @@ class CheckpointStatus(PyEnum):
     RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
+    INTERRUPTED = "interrupted"
 
 
 class Lead(Base):
