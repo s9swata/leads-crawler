@@ -96,6 +96,7 @@
 - Checkpoint integration in search and scrape commands (Phase 5-01)
 - Phase 5-02 complete: @retry decorator with exponential backoff, --dry-run for search/scrape commands
 - Phase 5-03 complete: Custom exceptions with user-friendly messages, signal handlers for graceful shutdown
+- Phase 5-04 complete: Gap closure - signal handlers use CheckpointStatus.INTERRUPTED enum
 
 ---
 
