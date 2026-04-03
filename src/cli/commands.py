@@ -19,6 +19,7 @@ from src.storage.database import session_scope
 from src.storage.query_builder import build_leads_query
 from src.export.csv_generator import export_csv
 from src.export.columns import AVAILABLE_COLUMNS
+from src.storage.lead_ingestion import LeadIngestionService
 
 
 @click.command(name="search")
@@ -84,6 +85,13 @@ async def _scrape(url: str, output_format: str):
             "websites": websites,
         }
 
+        ingestion_service = LeadIngestionService()
+        added, duplicates, leads = ingestion_service.ingest(
+            data=result,
+            source="scrape",
+            source_url=url,
+        )
+
         if output_format == "json":
             click.echo(json.dumps(result, indent=2))
         else:
@@ -95,6 +103,8 @@ async def _scrape(url: str, output_format: str):
                 click.echo("Social: " + ", ".join(social))
             if websites:
                 click.echo("Websites: " + ", ".join(websites))
+
+        click.echo(f"Stored {added} new leads, {duplicates} duplicates skipped")
     finally:
         await crawler.close()
 
