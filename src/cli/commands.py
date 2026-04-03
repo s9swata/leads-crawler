@@ -2,8 +2,10 @@
 
 import asyncio
 import json
+from typing import Optional
 
 import click
+from tqdm import tqdm
 
 from src.extraction.adapters import Crawl4aiAdapter
 from src.extraction.extractors import (
@@ -26,12 +28,68 @@ from src.storage.lead_ingestion import LeadIngestionService
 @click.option("--query", required=True, help="Search query for finding leads")
 @click.option("--location", help="Location to search in")
 @click.option("--limit", default=10, help="Maximum number of results")
-def search(query, location, limit):
+@click.option(
+    "--ingest/--no-ingest",
+    default=False,
+    help="Ingest results to database for later scraping",
+)
+def search(query, location, limit, ingest):
     """Search for business leads based on query and location."""
-    click.echo(f"Searching for: {query}")
+    settings = Settings()
+    if not settings.serper_api_key:
+        raise click.ClickException(
+            "SERPER_API_KEY not set. Get one at https://serper.dev/ and set it in your .env file."
+        )
+
+    asyncio.run(_search(query, location, limit, ingest, settings))
+
+
+async def _search(query: str, location: str, limit: int, ingest: bool, settings):
+    from src.search.adapters import SerperAdapter
+
+    adapter = SerperAdapter(settings.serper_api_key)
+
     if location:
-        click.echo(f"Location: {location}")
-    click.echo(f"Limit: {limit}")
+        full_query = f"{query} {location}"
+    else:
+        full_query = query
+
+    click.echo(f"Searching for: {full_query}")
+
+    try:
+        # Show progress bar during search
+        with tqdm(total=limit, desc="Searching", unit="results", leave=True) as pbar:
+            results = await adapter.search(full_query, limit)
+            pbar.update(len(results))
+    except Exception as e:
+        raise click.ClickException(f"Search failed: {e}")
+
+    if not results:
+        click.echo("No results found.")
+        return
+
+    click.echo(f"\nFound {len(results)} results:\n")
+
+    ingestion_service = LeadIngestionService()
+    ingested_count = 0
+
+    for i, result in enumerate(results, 1):
+        click.echo(f"{i}. {result.title}")
+        click.echo(f"   URL: {result.url}")
+        click.echo(f"   Snippet: {result.snippet[:100]}...")
+        click.echo()
+
+        if ingest:
+            added, duplicates, _ = ingestion_service.ingest(
+                data={"url": result.url, "company_name": result.title},
+                source="search",
+                source_url=result.url,
+            )
+            if added:
+                ingested_count += 1
+
+    if ingest:
+        click.echo(f"Ingested {ingested_count} leads to database.")
 
 
 @click.command(name="scrape")
