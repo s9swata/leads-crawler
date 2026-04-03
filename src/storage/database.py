@@ -6,6 +6,8 @@ from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from src.storage.models import Base
+
 DATABASE_PATH = Path(__file__).parent.parent.parent / "leads.db"
 DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
