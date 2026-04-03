@@ -3,8 +3,8 @@
 **Updated:** 2026-04-03
 **Status:** Ready to execute
 **Current Phase:** 3
-**Current Plan:** 2
-**Total Plans in Phase:** 2
+**Current Plan:** 3
+**Total Plans in Phase:** 3
 
 ---
 
@@ -42,6 +42,7 @@
 | EXPT-01 | Phase 3 | COMPLETED |
 | EXPT-02 | Phase 3 | COMPLETED |
 | EXPT-03 | Phase 3 | COMPLETED |
+| DEDUP-01 | Phase 3-03 | COMPLETED |
 
 ---
 
@@ -59,6 +60,7 @@
 - SQLAlchemy 2.0 with SQLite for lead storage
 - Session scope context manager for database operations
 - CSV export with column selection (default: company_name, email, website, phone, source, discovered_at)
+- LeadIngestionService for deduplication workflow
 
 ---
 
@@ -67,12 +69,14 @@
 - Phase 1 complete: CLI scaffold + core components
 - Phase 2 complete: Extraction pipeline with adapter interface
 - Phase 3 complete: Persistence & Export (LEAD-01 through LEAD-04, EXPT-01 through EXPT-03)
+- Phase 3-03 complete: Gap closure - LeadIngestionService connects Deduplicator to storage
 - RateLimiter, RobotsTxtParser, Lead schema implemented (Phase 1)
 - SourceAdapter interface with Crawl4aiAdapter implemented (Phase 2)
 - scrape CLI command with all extractors (Phase 2)
 - SQLAlchemy database with Lead model and LeadRepository (Phase 3-01)
 - Query builder with filter/sort (Phase 3-02)
 - leads and export CLI commands with column selection (Phase 3-02)
+- Deduplication workflow (Phase 3-03)
 
 ---
 
