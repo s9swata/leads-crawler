@@ -33,6 +33,10 @@ class WebsiteExtractor:
             else:
                 absolute_url = href
 
+            # Skip URLs that look like email addresses
+            if "@" in absolute_url:
+                continue
+
             parsed = urlparse(absolute_url)
             if parsed.scheme in ("http", "https") and parsed.netloc:
                 urls.add(absolute_url)

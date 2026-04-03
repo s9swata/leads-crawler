@@ -368,8 +368,11 @@ async def _scrape(url: str, output_format: str, dry_run: bool = False):
 @click.command(name="init")
 def init():
     """Initialize a new lead generation project with default config."""
+    from src.storage.database import init_db
+
     click.echo("Initializing lead-gen project...")
-    click.echo("Creating default config file...")
+    init_db()
+    click.echo("Database tables created ✓")
 
 
 @click.command(name="leads")
