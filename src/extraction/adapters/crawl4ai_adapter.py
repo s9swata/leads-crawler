@@ -1,0 +1,41 @@
+"""Crawl4ai adapter implementation."""
+
+from crawl4ai import AsyncWebCrawler
+
+from src.extraction.adapters.base import SourceAdapter
+
+
+class Crawl4aiAdapter(SourceAdapter):
+    """Crawl4ai implementation of SourceAdapter."""
+
+    def __init__(self, crawler: AsyncWebCrawler, **kwargs):
+        """Initialize Crawl4ai adapter.
+
+        Args:
+            crawler: AsyncWebCrawler instance
+            **kwargs: Additional arguments passed to base class
+        """
+        super().__init__(**kwargs)
+        self.crawler = crawler
+
+    async def fetch(self, url: str) -> str:
+        """Fetch HTML content from URL using Crawl4ai.
+
+        Args:
+            url: URL to fetch
+
+        Returns:
+            HTML content as string
+        """
+        result = await self.crawler.arun(url=url)
+        if result.success:
+            return result.html
+        raise ValueError(f"Failed to fetch {url}: {result.error}")
+
+    def get_source_name(self) -> str:
+        """Get the source adapter name.
+
+        Returns:
+            "crawl4ai"
+        """
+        return "crawl4ai"
