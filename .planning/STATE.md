@@ -1,7 +1,10 @@
 # Project State
 
 **Updated:** 2026-04-03
-**Status:** PLANNING
+**Status:** Ready to execute
+**Current Phase:** 1
+**Current Plan:** 2 (completed)
+**Total Plans in Phase:** 2
 
 ---
 
@@ -9,7 +12,7 @@
 
 | Phase | Name | Status | Progress | Blockers |
 |-------|------|--------|----------|----------|
-| 1 | Foundation | NOT_STARTED | 0% | — |
+| 1 | Foundation | COMPLETE | 100% | — |
 | 2 | Core Extraction | NOT_STARTED | 0% | Phase 1 |
 | 3 | Persistence & Export | NOT_STARTED | 0% | Phase 1, Phase 2 |
 | 4 | Search & Discovery | NOT_STARTED | 0% | Phase 1, Phase 2, Phase 3 |
@@ -21,13 +24,13 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLI-01 | Phase 1 | NOT_STARTED |
-| CLI-02 | Phase 1 | NOT_STARTED |
-| CLI-03 | Phase 1 | NOT_STARTED |
+| CLI-01 | Phase 1 | COMPLETED |
+| CLI-02 | Phase 1 | COMPLETED |
+| CLI-03 | Phase 1 | COMPLETED |
 | DISC-01 | Phase 4 | NOT_STARTED |
 | DISC-02 | Phase 4 | NOT_STARTED |
 | DISC-03 | Phase 4 | NOT_STARTED |
-| DISC-04 | Phase 1 | NOT_STARTED |
+| DISC-04 | Phase 1 | COMPLETED |
 | COLL-01 | Phase 2 | NOT_STARTED |
 | COLL-02 | Phase 2 | NOT_STARTED |
 | COLL-03 | Phase 2 | NOT_STARTED |
@@ -42,16 +45,23 @@
 
 ---
 
-## Current Sprint
+## Key Decisions
 
-None (planning phase)
+- CLI uses Click framework with context object for settings
+- Pydantic Settings for configuration (env, YAML, JSON support)
+- YAML/JSON config takes precedence over .env
+- Used protego for robots.txt parsing
+- Sliding window rate limiting with per-domain delays
+- Lead schema requires at least one contact method
 
 ---
 
 ## Notes
 
-- All phases blocked until Phase 1 is complete
-- Phase dependencies ensure clean architectural foundations
+- Phase 1 complete: CLI scaffold + core components
+- RateLimiter, RobotsTxtParser, Lead schema implemented
+- DISC-04: Rate limiting framework in place
+- CLI-03: Logging in place (throttling, allow/block decisions)
 
 ---
 
