@@ -1,9 +1,9 @@
 # Project State
 
 **Updated:** 2026-04-03
-**Status:** Ready to execute
-**Current Phase:** 4
-**Current Plan:** 2
+**Status:** Phase complete — ready for verification
+**Current Phase:** 5
+**Current Plan:** 1
 **Total Plans in Phase:** 2
 
 ---
@@ -15,8 +15,8 @@
 | 1 | Foundation | COMPLETE | 100% | — |
 | 2 | Core Extraction | COMPLETE | 100% | — |
 | 3 | Persistence & Export | COMPLETE | 100% | — |
-| 4 | Search & Discovery | IN_PROGRESS | 50% | Phase 1, Phase 2, Phase 3 |
-| 5 | Resilience & Polish | NOT_STARTED | 0% | Phase 4 |
+| 4 | Search & Discovery | COMPLETE | 100% | — |
+| 5 | Resilience & Polish | IN_PROGRESS | 50% | — |
 
 ---
 
@@ -43,6 +43,8 @@
 | EXPT-02 | Phase 3 | COMPLETED |
 | EXPT-03 | Phase 3 | COMPLETED |
 | DEDUP-01 | Phase 3-03 | COMPLETED |
+| CHKPT-01 | Phase 5-01 | COMPLETED |
+| CHKPT-02 | Phase 5-01 | COMPLETED |
 
 ---
 
@@ -63,6 +65,9 @@
 - LeadIngestionService for deduplication workflow
 - SerperAdapter for search with pagination and rate limit handling
 - tqdm for CLI progress bars
+- Checkpoint SQLAlchemy model with unique (job_type, job_id) index
+- CheckpointService for save/load/clear checkpoint operations
+- Query hash + date as job_id for search, URL as job_id for scrape
 
 ---
 
@@ -81,6 +86,8 @@
 - Deduplication workflow (Phase 3-03)
 - Phase 4-01 complete: SerperAdapter with search functionality
 - Phase 4-02 complete: Gap closure - progress indicator, pagination, rate limit handling
+- Phase 5-01 complete: Checkpoint model + CheckpointService for resume capability
+- Checkpoint integration in search and scrape commands (Phase 5-01)
 
 ---
 
