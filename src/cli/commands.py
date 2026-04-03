@@ -1,7 +1,9 @@
 """CLI commands for lead-gen."""
 
 import asyncio
+import hashlib
 import json
+from datetime import datetime
 from typing import Optional
 
 import click
@@ -22,6 +24,7 @@ from src.storage.query_builder import build_leads_query
 from src.export.csv_generator import export_csv
 from src.export.columns import AVAILABLE_COLUMNS
 from src.storage.lead_ingestion import LeadIngestionService
+from src.storage.checkpoint import CheckpointService
 
 
 @click.command(name="search")
@@ -56,12 +59,58 @@ async def _search(query: str, location: str, limit: int, ingest: bool, settings)
 
     click.echo(f"Searching for: {full_query}")
 
+    # Generate job_id from query hash + timestamp
+    query_hash = hashlib.sha256(full_query.encode()).hexdigest()[:16]
+    job_id = f"{query_hash}_{datetime.utcnow().strftime('%Y%m%d')}"
+
+    # Check for existing checkpoint to resume
+    checkpoint_service = CheckpointService()
+    completed_results = []
+    start_index = 0
+
+    if checkpoint_service.is_resumable("search", job_id):
+        checkpoint = checkpoint_service.load_checkpoint("search", job_id)
+        if checkpoint:
+            completed_results = checkpoint.completed_items or []
+            start_index = len(completed_results)
+            click.echo(
+                f"Resuming from checkpoint... {start_index} results already completed."
+            )
+
+    # Adjust limit to account for already completed results
+    adjusted_limit = limit + start_index
+
     try:
         # Show progress bar during search
-        with tqdm(total=limit, desc="Searching", unit="results", leave=True) as pbar:
-            results = await adapter.search(full_query, limit)
-            pbar.update(len(results))
+        with tqdm(
+            total=adjusted_limit, desc="Searching", unit="results", leave=True
+        ) as pbar:
+            # Skip already completed results if resuming
+            for i in range(start_index):
+                pbar.update(1)
+
+            results = await adapter.search(full_query, adjusted_limit)
+            new_results = results[start_index:]
+
+            for result in new_results:
+                completed_results.append(
+                    {
+                        "title": result.title,
+                        "url": result.url,
+                        "snippet": result.snippet,
+                    }
+                )
+                pbar.update(1)
+
+                # Save checkpoint after each page
+                checkpoint_service.save_progress(
+                    "search", job_id, completed_results, [], "running"
+                )
     except Exception as e:
+        # Save checkpoint on failure
+        checkpoint_service.save_progress(
+            "search", job_id, completed_results, [{"error": str(e)}], "failed"
+        )
         raise click.ClickException(f"Search failed: {e}")
 
     if not results:
@@ -90,6 +139,9 @@ async def _search(query: str, location: str, limit: int, ingest: bool, settings)
 
     if ingest:
         click.echo(f"Ingested {ingested_count} leads to database.")
+
+    # Clear checkpoint on successful completion
+    checkpoint_service.clear_checkpoint("search", job_id)
 
 
 @click.command(name="scrape")
@@ -122,6 +174,20 @@ async def _scrape(url: str, output_format: str):
         robots_parser=robots_parser,
     )
 
+    # Use URL as job_id for scrape operations
+    job_id = url
+    checkpoint_service = CheckpointService()
+    completed_items = []
+    failed_items = []
+
+    # Check for existing checkpoint to resume
+    if checkpoint_service.is_resumable("scrape", job_id):
+        checkpoint = checkpoint_service.load_checkpoint("scrape", job_id)
+        if checkpoint:
+            completed_items = checkpoint.completed_items or []
+            failed_items = checkpoint.failed_items or []
+            click.echo(f"Resuming scrape from {len(completed_items)} completed URLs...")
+
     try:
         html = await adapter.fetch_if_allowed(url)
 
@@ -143,6 +209,14 @@ async def _scrape(url: str, output_format: str):
             "websites": websites,
         }
 
+        # Track completed item
+        completed_items.append(result)
+
+        # Save checkpoint after each successful scrape
+        checkpoint_service.save_progress(
+            "scrape", job_id, completed_items, failed_items, "running"
+        )
+
         ingestion_service = LeadIngestionService()
         added, duplicates, leads = ingestion_service.ingest(
             data=result,
@@ -163,7 +237,17 @@ async def _scrape(url: str, output_format: str):
                 click.echo("Websites: " + ", ".join(websites))
 
         click.echo(f"Stored {added} new leads, {duplicates} duplicates skipped")
+    except Exception as e:
+        # Track failed item and save checkpoint
+        failed_items.append({"url": url, "error": str(e)})
+        checkpoint_service.save_progress(
+            "scrape", job_id, completed_items, failed_items, "failed"
+        )
+        raise click.ClickException(f"Scrape failed: {e}")
     finally:
+        # Clear checkpoint on successful completion (moved here for proper cleanup)
+        if not failed_items:
+            checkpoint_service.clear_checkpoint("scrape", job_id)
         await crawler.close()
 
 
