@@ -39,6 +39,10 @@
 - robots.txt parser
 - Lead schema with validation
 
+**Plans:**
+- [ ] 01-01-PLAN.md — CLI scaffold and configuration management
+- [ ] 01-02-PLAN.md — Rate limiting, robots.txt parsing, lead schema
+
 ---
 
 ## Phase 2: Core Extraction
