@@ -65,7 +65,7 @@ class CheckpointService:
             return checkpoint
 
     @staticmethod
-    def load_checkpoint(job_type: str, job_id: str) -> Checkpoint | None:
+    def load_checkpoint(job_type: str, job_id: str) -> dict | None:
         """Load checkpoint for a job.
 
         Args:
@@ -73,14 +73,26 @@ class CheckpointService:
             job_id: Unique identifier for the job
 
         Returns:
-            Checkpoint if found, None otherwise
+            Dict with checkpoint data if found, None otherwise
         """
         with session_scope() as session:
-            return (
+            checkpoint = (
                 session.query(Checkpoint)
                 .filter(Checkpoint.job_type == job_type, Checkpoint.job_id == job_id)
                 .first()
             )
+            if checkpoint is None:
+                return None
+            return {
+                "id": checkpoint.id,
+                "job_type": checkpoint.job_type,
+                "job_id": checkpoint.job_id,
+                "status": checkpoint.status,
+                "completed_items": checkpoint.completed_items,
+                "failed_items": checkpoint.failed_items,
+                "created_at": checkpoint.created_at,
+                "updated_at": checkpoint.updated_at,
+            }
 
     @staticmethod
     def clear_checkpoint(job_type: str, job_id: str) -> bool:

@@ -29,15 +29,27 @@ class LeadRepository:
         return self._row_to_lead(result) if result else None
 
     def find_by_website(self, url: str) -> Optional["Lead"]:
-        """Find a lead by website URL."""
+        """Find a lead by website URL (exact domain match)."""
         from urllib.parse import urlparse
 
         parsed = urlparse(url)
-        domain = parsed.netloc or parsed.path
+        domain = (parsed.netloc or parsed.path).lower()
+        if domain.startswith("www."):
+            domain = domain[4:]
 
-        stmt = select(LeadModel).where(LeadModel.website.like(f"%{domain}%"))
-        result = self._session.execute(stmt).scalar_one_or_none()
-        return self._row_to_lead(result) if result else None
+        # Find leads with matching domain in website field
+        stmt = select(LeadModel).where(LeadModel.website.isnot(None))
+        results = self._session.execute(stmt).scalars().all()
+
+        for lead in results:
+            if lead.website:
+                lead_parsed = urlparse(lead.website)
+                lead_domain = (lead_parsed.netloc or lead_parsed.path).lower()
+                if lead_domain.startswith("www."):
+                    lead_domain = lead_domain[4:]
+                if lead_domain == domain:
+                    return self._row_to_lead(lead)
+        return None
 
     def list_all(self, limit: int = 100, offset: int = 0) -> list["Lead"]:
         """List all leads with pagination."""

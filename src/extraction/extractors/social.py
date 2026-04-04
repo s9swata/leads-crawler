@@ -53,3 +53,20 @@ class SocialExtractor:
         if url.startswith("/"):
             return ""
         return url
+
+    def extract_from_text(self, text: str) -> list[str]:
+        """Extract social media URLs from plain text.
+
+        Args:
+            text: Text content to extract social links from
+
+        Returns:
+            List of social media URLs found
+        """
+        urls = set()
+        for pattern in [self.LINKEDIN_PATTERN, self.TWITTER_PATTERN]:
+            matches = re.findall(pattern, text, re.IGNORECASE)
+            for m in matches:
+                url = m if m.startswith(("http://", "https://")) else f"https://{m}"
+                urls.add(url)
+        return list(urls)

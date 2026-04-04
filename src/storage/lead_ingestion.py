@@ -1,5 +1,6 @@
 """Lead ingestion service with deduplication."""
 
+import hashlib
 from datetime import datetime
 from typing import Optional
 from urllib.parse import urlparse
@@ -118,10 +119,17 @@ class LeadIngestionService:
         return None
 
     def _generate_lead_id(self, url: str) -> str:
-        """Generate a unique lead ID from URL."""
+        """Generate a unique lead ID from URL.
+
+        Uses URL hash to allow multiple leads per domain (e.g., different
+        Reddit posts about the same company). Deduplication is handled by
+        Deduplicator.find_duplicate() which checks email and website domain,
+        not by lead ID.
+        """
         if not url:
             from uuid import uuid4
 
             return f"lead-{uuid4().hex[:8]}"
         domain = self._extract_domain_name(url)
-        return f"lead-{domain.lower()}"
+        url_hash = hashlib.md5(url.encode()).hexdigest()[:8]
+        return f"lead-{domain.lower()}-{url_hash}"

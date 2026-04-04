@@ -100,6 +100,38 @@ lead-gen export -o leads.csv --filter-email --filter-phone
 lead-gen export -o leads.csv --columns "company_name,email,phone,address,business_category"
 ```
 
+### `reddit` — Search Reddit for business leads
+
+Searches Reddit posts for contact info (emails, websites, phone numbers). **No API key required** — uses Reddit's public JSON API.
+
+```bash
+# Search r/forhire for freelance leads
+lead-gen reddit -r forhire --limit 50
+
+# Search r/smallbusiness for specific intent
+lead-gen reddit -r smallbusiness -q "need website" --sort new --limit 30
+
+# Search r/entrepreneur with email+phone requirement
+lead-gen reddit -r entrepreneur --require-email-and-phone --limit 100
+
+# Search top posts from the past year
+lead-gen reddit -r startups --sort top --time year --limit 100 --category "startup"
+```
+
+| Option | Description |
+|---|---|
+| `-r, --subreddit` | Subreddit to search (required, without r/) |
+| `-q, --query` | Search query within subreddit |
+| `--sort` | Sort: hot, new, top, rising (default: hot) |
+| `--time` | Time filter: hour, day, week, month, year, all (default: month) |
+| `--limit` | Max posts to process (default: 50) |
+| `--category` | Business category label for leads |
+| `--require-email-and-phone` | Only save leads with both email AND phone |
+| `--delay` | Seconds between requests (default: 1.0) |
+| `--dry-run` | Preview without saving |
+
+**Best subreddits for lead gen:** `forhire`, `slavehire`, `hireawebdeveloper`, `webdev`, `smallbusiness`, `entrepreneur`, `startups`, `marketing`, `ecommerce`, `realtors`
+
 ## Batch Categories
 
 Each category expands into multiple search queries automatically:
@@ -134,7 +166,7 @@ You can also pass any custom location string: `--locations "Koregaon Park Pune"`
 | `linkedin` | LinkedIn profile URL |
 | `address` | Business address |
 | `business_category` | Category/industry |
-| `source` | How the lead was found (search, scrape, batch) |
+| `source` | How the lead was found (search, scrape, batch, reddit) |
 | `source_url` | Original URL where lead was discovered |
 | `discovered_at` | When the lead was first found |
 | `scraped_at` | When the website was scraped |
@@ -147,9 +179,13 @@ Default export columns: `company_name, email, website, phone, address, business_
 # 1. Batch generate leads for a category in one city
 lead-gen batch --categories restaurants --locations "Pune" --target 200 -o pune_restaurants.csv
 
-# 2. Export only leads with both email and phone
+# 2. Search Reddit for additional leads
+lead-gen reddit -r forhire --limit 100
+lead-gen reddit -r smallbusiness -q "need website" --sort new --limit 50
+
+# 3. Export only leads with both email and phone
 lead-gen export -o verified.csv --filter-email --filter-phone
 
-# 3. View leads in terminal
+# 4. View leads in terminal
 lead-gen leads --filter-email --per-page 30
 ```

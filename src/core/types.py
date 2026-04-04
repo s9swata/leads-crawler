@@ -32,7 +32,7 @@ class Lead(BaseModel):
     @classmethod
     def validate_source(cls, v: str) -> str:
         """Validate source is in allowed values."""
-        allowed = ["search", "scrape", "manual", "batch"]
+        allowed = ["search", "scrape", "manual", "batch", "reddit"]
         if v not in allowed:
             raise ValueError(f"source must be one of {allowed}")
         return v
