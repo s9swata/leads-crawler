@@ -23,15 +23,19 @@ class LeadIngestionService:
         company_name: Optional[str] = None,
         source: str = "scrape",
         source_url: Optional[str] = None,
+        address: Optional[str] = None,
+        business_category: Optional[str] = None,
     ) -> tuple[int, int, list[Lead]]:
         """
         Ingest leads from scraped data with deduplication.
 
         Args:
-            data: Dict with keys: url, emails, phones, social, websites
+            data: Dict with keys: url, emails, phones, social, websites, address
             company_name: Optional company name (extracted from URL domain if not provided)
             source: Source of leads (default: "scrape")
             source_url: URL where data was scraped from
+            address: Optional physical address
+            business_category: Optional business category
 
         Returns:
             Tuple of (added_count, duplicate_count, leads)
@@ -41,6 +45,7 @@ class LeadIngestionService:
         phones = data.get("phones", [])
         social = data.get("social", [])
         websites = data.get("websites", [])
+        scraped_address = data.get("address") or address
 
         if not company_name and url:
             domain = self._extract_domain_name(url)
@@ -69,6 +74,8 @@ class LeadIngestionService:
                 website=primary_website,
                 phone=primary_phone,
                 linkedin=linkedin,
+                address=scraped_address,
+                business_category=business_category,
                 source=source,
                 source_url=source_url or url,
                 discovered_at=datetime.utcnow(),

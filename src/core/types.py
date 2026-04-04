@@ -21,6 +21,8 @@ class Lead(BaseModel):
     website: Optional[str] = None
     phone: Optional[str] = None
     linkedin: Optional[str] = None
+    address: Optional[str] = None
+    business_category: Optional[str] = None
     source: str
     source_url: Optional[str] = None
     discovered_at: datetime = datetime.utcnow()
@@ -30,7 +32,7 @@ class Lead(BaseModel):
     @classmethod
     def validate_source(cls, v: str) -> str:
         """Validate source is in allowed values."""
-        allowed = ["search", "scrape", "manual"]
+        allowed = ["search", "scrape", "manual", "batch"]
         if v not in allowed:
             raise ValueError(f"source must be one of {allowed}")
         return v

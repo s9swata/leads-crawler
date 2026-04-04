@@ -20,8 +20,8 @@ class Crawl4aiAdapter(SourceAdapter):
         self.crawler = crawler
 
     @retry(
-        max_retries=3,
-        initial_backoff=2.0,
+        max_retries=2,
+        initial_backoff=1.0,
         backoff_factor=2.0,
         retry_on=(Exception,),
     )
@@ -34,7 +34,10 @@ class Crawl4aiAdapter(SourceAdapter):
         Returns:
             HTML content as string
         """
-        result = await self.crawler.arun(url=url)
+        result = await self.crawler.arun(
+            url=url,
+            timeout=15.0,
+        )
         if result.success:
             return result.html
         raise ValueError(f"Failed to fetch {url}: {result.error}")

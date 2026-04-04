@@ -426,12 +426,16 @@ def leads(
         for lead in leads_list:
             click.echo(f"\n--- Lead: {lead.company_name} ---")
             click.echo(f"  Source: {lead.source}")
+            if lead.business_category:
+                click.echo(f"  Category: {lead.business_category}")
             if lead.email:
                 click.echo(f"  Email: {lead.email}")
             if lead.website:
                 click.echo(f"  Website: {lead.website}")
             if lead.phone:
                 click.echo(f"  Phone: {lead.phone}")
+            if lead.address:
+                click.echo(f"  Address: {lead.address}")
             if lead.linkedin:
                 click.echo(f"  LinkedIn: {lead.linkedin}")
             click.echo(f"  Discovered: {lead.discovered_at}")

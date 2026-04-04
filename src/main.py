@@ -2,6 +2,7 @@
 
 import click
 from src.cli.commands import search, scrape, init, export_cmd, leads
+from src.cli.batch import batch
 from src.config.settings import Settings
 
 
@@ -27,6 +28,7 @@ cli.add_command(scrape)
 cli.add_command(init)
 cli.add_command(leads)
 cli.add_command(export_cmd)
+cli.add_command(batch)
 
 
 if __name__ == "__main__":

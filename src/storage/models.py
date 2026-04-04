@@ -35,6 +35,10 @@ class Lead(Base):
     website: Mapped[str | None] = mapped_column(String(500), nullable=True, index=True)
     phone: Mapped[str | None] = mapped_column(String(50), nullable=True)
     linkedin: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    business_category: Mapped[str | None] = mapped_column(
+        String(100), nullable=True, index=True
+    )
     source: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
     source_url: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     discovered_at: Mapped[datetime] = mapped_column(

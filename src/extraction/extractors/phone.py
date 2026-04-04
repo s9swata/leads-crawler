@@ -60,3 +60,17 @@ class PhoneExtractor:
         phones.extend(self.extract_from_text(text))
 
         return list(set(phones))
+
+
+def is_valid_phone(phone: str, min_digits: int = 8) -> bool:
+    """Check if a phone number is valid (has minimum digits).
+
+    Args:
+        phone: Phone number string
+        min_digits: Minimum number of digits required
+
+    Returns:
+        True if phone number has at least min_digits digits
+    """
+    digits = re.sub(r"\D", "", phone)
+    return len(digits) >= min_digits

@@ -105,4 +105,5 @@ class RobotsTxtParser:
             except Exception as e:
                 logger.debug(f"Failed to fetch robots.txt for {domain}: {e}")
 
-        return Protego.create_empty()
+        # Return empty robots.txt (allows everything)
+        return Protego("")

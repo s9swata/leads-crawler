@@ -12,6 +12,8 @@ class LeadColumns(Enum):
     WEBSITE = "website"
     PHONE = "phone"
     LINKEDIN = "linkedin"
+    ADDRESS = "address"
+    BUSINESS_CATEGORY = "business_category"
     SOURCE = "source"
     SOURCE_URL = "source_url"
     DISCOVERED_AT = "discovered_at"
@@ -28,6 +30,10 @@ COLUMN_MAPPING = {
     "phone": "phone",
     "telephone": "phone",
     "linkedin": "linkedin",
+    "address": "address",
+    "addr": "address",
+    "category": "business_category",
+    "business_category": "business_category",
     "source": "source",
     "source_url": "source_url",
     "url_found": "source_url",
@@ -46,6 +52,8 @@ DEFAULT_COLUMNS = [
     "email",
     "website",
     "phone",
+    "address",
+    "business_category",
     "source",
     "discovered_at",
 ]

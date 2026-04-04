@@ -39,6 +39,26 @@ class WebsiteExtractor:
 
             parsed = urlparse(absolute_url)
             if parsed.scheme in ("http", "https") and parsed.netloc:
+                # Skip URLs with invalid domains (single char, no dots, etc.)
+                netloc = parsed.netloc.lower()
+                if "." not in netloc:
+                    continue
+                # Skip common non-business domains
+                if any(
+                    skip in netloc
+                    for skip in [
+                        "youtube.com",
+                        "facebook.com",
+                        "instagram.com",
+                        "twitter.com",
+                        "linkedin.com",
+                        "tiktok.com",
+                        "whatsapp.com",
+                        "t.me",
+                        "wa.me",
+                    ]
+                ):
+                    continue
                 urls.add(absolute_url)
 
         return sorted(urls)

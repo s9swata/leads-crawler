@@ -4,3 +4,7 @@
 .venv
 .planning
 .env
+__pycache__/
+*.pyc
+.DS_Store
+leads.db
