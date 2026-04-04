@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from src.storage.models import Base
 
-DATABASE_PATH = Path(__file__).parent.parent.parent / "leads.db"
+# Use current working directory for database, fallback to package location
+DATABASE_PATH = Path.cwd() / "leads.db"
+if not DATABASE_PATH.parent.exists():
+    DATABASE_PATH = Path(__file__).parent.parent.parent / "leads.db"
 DATABASE_URL = f"sqlite:///{DATABASE_PATH}"
 
 engine = create_engine(DATABASE_URL, echo=False, future=True)
