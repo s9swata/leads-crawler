@@ -129,19 +129,25 @@ class CheckpointService:
         Returns:
             True if checkpoint exists and is in pending/running state
         """
-        with session_scope() as session:
-            checkpoint = (
-                session.query(Checkpoint)
-                .filter(Checkpoint.job_type == job_type, Checkpoint.job_id == job_id)
-                .first()
-            )
+        from sqlalchemy.exc import OperationalError
 
-            if checkpoint is None:
-                return False
+        try:
+            with session_scope() as session:
+                checkpoint = (
+                    session.query(Checkpoint)
+                    .filter(
+                        Checkpoint.job_type == job_type, Checkpoint.job_id == job_id
+                    )
+                    .first()
+                )
 
-            # Resumable if pending, running, or interrupted (not completed or failed)
-            return checkpoint.status in (
-                CheckpointStatus.PENDING.value,
-                CheckpointStatus.RUNNING.value,
-                CheckpointStatus.INTERRUPTED.value,
-            )
+                if checkpoint is None:
+                    return False
+
+                return checkpoint.status in (
+                    CheckpointStatus.PENDING.value,
+                    CheckpointStatus.RUNNING.value,
+                    CheckpointStatus.INTERRUPTED.value,
+                )
+        except OperationalError:
+            return False
